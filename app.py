@@ -13,7 +13,7 @@ classes = ['Attentive', 'Distracted', 'Sleepy', 'Bullying', 'Daydreaming', 'Hand
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 # Load model
-model_path = "Project/emotion_model_2.pth"
+model_path = "emotion_model_2.pth"
 model = models.resnet18(pretrained=True)
 model.fc = nn.Linear(model.fc.in_features, len(classes))
 model.load_state_dict(torch.load(model_path, map_location=device))
