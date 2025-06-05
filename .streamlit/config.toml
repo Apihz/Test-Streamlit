@@ -1,4 +1,6 @@
 [server]
-enableCORS = false
-[watch]
-ignore = ["**/torch/**"]
+enableCORS = true
+enableXsrfProtection = false
+
+[browser]
+gatherUsageStats = false

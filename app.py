@@ -166,21 +166,40 @@ def main():
         else:
             st.success("✅ Model loaded and ready!")
         
-        # WebRTC streamer with better configuration
+        # WebRTC streamer with STUN/TURN configuration for deployment
+        RTC_CONFIGURATION = {
+            "iceServers": [
+                {"urls": ["stun:stun.l.google.com:19302"]},
+                {"urls": ["stun:stun1.l.google.com:19302"]},
+                {"urls": ["stun:stun2.l.google.com:19302"]},
+                {"urls": ["stun:stun3.l.google.com:19302"]},
+                {"urls": ["stun:stun4.l.google.com:19302"]},
+            ]
+        }
+
         ctx = webrtc_streamer(
             key="attention-detection",
             mode=WebRtcMode.SENDRECV,
+            rtc_configuration=RTC_CONFIGURATION,
             video_processor_factory=AttentionTransformer,
             media_stream_constraints={
                 "video": {
-                    "width": {"min": 640, "ideal": 1280, "max": 1920},
-                    "height": {"min": 480, "ideal": 720, "max": 1080},
-                    "frameRate": {"min": 15, "ideal": 30, "max": 60}
+                    "width": {"min": 480, "ideal": 640, "max": 1280},
+                    "height": {"min": 360, "ideal": 480, "max": 720},
+                    "frameRate": {"min": 10, "ideal": 15, "max": 30}
                 },
                 "audio": False
             },
             async_processing=True,
         )
+        
+        # Connection status
+        if ctx.state.playing:
+            st.success("🟢 Camera connected successfully!")
+        elif ctx.state.signalling:
+            st.info("🟡 Connecting to camera...")
+        else:
+            st.warning("🔴 Camera not connected. Click START to begin.")
     
     with col2:
         st.subheader("📊 System Status")
@@ -200,12 +219,30 @@ def main():
         # Instructions
         st.subheader("📋 Instructions")
         st.write("""
-        1. Click 'START' to begin camera feed
-        2. Allow camera permissions
-        3. Position yourself in the camera view
-        4. Watch real-time attention detection
-        5. Click 'STOP' to end session
+        1. Click **START** to begin camera feed
+        2. Allow camera permissions when prompted
+        3. Wait for connection (may take 10-30 seconds)
+        4. Position yourself in the camera view
+        5. Watch real-time attention detection
+        6. Click **STOP** to end session
         """)
+        
+        # Troubleshooting section
+        with st.expander("🔧 Troubleshooting"):
+            st.write("""
+            **If camera won't connect:**
+            - Refresh the page and try again
+            - Check camera permissions in browser
+            - Try a different browser (Chrome recommended)
+            - Ensure you're using HTTPS (not HTTP)
+            - Wait up to 30 seconds for connection
+            
+            **Supported browsers:**
+            - ✅ Chrome/Chromium
+            - ✅ Firefox
+            - ✅ Safari (macOS/iOS)
+            - ⚠️ Edge (may have issues)
+            """)
 
 if __name__ == "__main__":
     main()
