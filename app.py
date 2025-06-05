@@ -1,10 +1,16 @@
+import asyncio
+try:
+    asyncio.get_running_loop()
+except RuntimeError:
+    asyncio.set_event_loop(asyncio.new_event_loop())
+
 import streamlit as st
 import torch
 import torch.nn as nn
 import torchvision.models as models
+from torchvision.models import ResNet18_Weights  # Optional, only if you want pretrained weights
 from torchvision import transforms
 from PIL import Image
-import numpy as np
 import cv2
 import av
 
@@ -20,12 +26,16 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 @st.cache_resource
 def load_model():
     model_path = "emotion_model_2.pth"
-    model = models.resnet18(pretrained=False)
+    model = models.resnet18(weights=None)  # weights=None instead of pretrained=False (new syntax)
     model.fc = nn.Linear(model.fc.in_features, len(classes))
-    model.load_state_dict(torch.load(model_path, map_location=device))
-    model.to(device)
-    model.eval()
-    return model
+    try:
+        model.load_state_dict(torch.load(model_path, map_location=device))
+        model.to(device)
+        model.eval()
+        return model
+    except Exception as e:
+        st.error(f"Error loading model: {e}")
+        return None
 
 model = load_model()
 
@@ -71,7 +81,7 @@ def main():
         st.error("Model not loaded. Please upload your model file.")
         return
 
-    webrtc_streamer(key="attention-detection", video_transformer_factory=AttentionTransformer)
+    webrtc_streamer(key="attention-detection", video_processor_factory=AttentionTransformer)
 
 if __name__ == "__main__":
     main()

@@ -1,2 +1,4 @@
 [server]
 enableCORS = false
+[watch]
+ignore = ["**/torch/**"]
